@@ -19,3 +19,14 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   req.userId = payload.userId;
   next();
 }
+
+export function requireRole(...roles: string[]) {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const { User } = await import("../models/User");
+    const user = await User.findById(req.userId);
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({ success: false, error: "Insufficient permissions" });
+    }
+    next();
+  };
+}

@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import routes from "./routes";
+import { apiLimiter, errorHandler } from "./middleware";
 
 dotenv.config();
 
@@ -14,12 +15,15 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/eventl
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/api", apiLimiter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.use("/api/v1", routes);
+
+app.use(errorHandler);
 
 mongoose
   .connect(MONGODB_URI)
