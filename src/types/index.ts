@@ -18,8 +18,16 @@ export interface IEventType {
   capacity: number;
   price: number;
   organizer: string;
-  status: "draft" | "published" | "cancelled";
+  status: "draft" | "pending" | "published" | "cancelled";
   views: number;
+  attendeesCount: number;
+  createdAt: Date;
+}
+
+export interface IRegistrationType {
+  _id: string;
+  event: string;
+  user: string;
   createdAt: Date;
 }
 

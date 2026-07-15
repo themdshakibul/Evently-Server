@@ -10,8 +10,9 @@ export interface IEvent extends Document {
   capacity: number;
   price: number;
   organizer: mongoose.Types.ObjectId;
-  status: "draft" | "published" | "cancelled";
+  status: "draft" | "pending" | "published" | "cancelled";
   views: number;
+  attendeesCount: number;
   createdAt: Date;
 }
 
@@ -25,8 +26,9 @@ const eventSchema = new Schema<IEvent>({
   capacity: { type: Number, required: true, min: 1 },
   price: { type: Number, default: 0, min: 0 },
   organizer: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  status: { type: String, enum: ["draft", "published", "cancelled"], default: "draft" },
+  status: { type: String, enum: ["draft", "pending", "published", "cancelled"], default: "draft" },
   views: { type: Number, default: 0 },
+  attendeesCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 

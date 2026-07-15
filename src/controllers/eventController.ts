@@ -1,6 +1,13 @@
 import { Response } from "express";
 import { Event } from "../models/Event";
+import { Registration } from "../models/Registration";
+import { User } from "../models/User";
 import type { AuthRequest } from "../middleware/auth";
+
+async function isAdmin(userId: string): Promise<boolean> {
+  const user = await User.findById(userId);
+  return user?.role === "admin";
+}
 
 export async function getEvents(req: AuthRequest, res: Response) {
   try {
@@ -14,7 +21,7 @@ export async function getEvents(req: AuthRequest, res: Response) {
       sort = "newest",
     } = req.query as Record<string, string>;
 
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = { status: "published" };
 
     if (search) {
       filter.$text = { $search: search };
@@ -86,6 +93,7 @@ export async function getRelatedEvents(req: AuthRequest, res: Response) {
     const related = await Event.find({
       _id: { $ne: event._id },
       category: event.category,
+      status: "published",
     })
       .sort({ views: -1 })
       .limit(4)
@@ -100,8 +108,10 @@ export async function getRelatedEvents(req: AuthRequest, res: Response) {
 export async function createEvent(req: AuthRequest, res: Response) {
   try {
     const { title, description, category, date, location, images, capacity, price } = req.body;
+    const isAdmin = await User.findById(req.userId).then(u => u?.role === "admin");
 
     const event = await Event.create({
+      status: isAdmin ? "published" : "pending",
       title,
       description,
       category,
@@ -126,7 +136,7 @@ export async function updateEvent(req: AuthRequest, res: Response) {
       return res.status(404).json({ success: false, error: "Event not found" });
     }
 
-    if (event.organizer.toString() !== req.userId) {
+    if (event.organizer.toString() !== req.userId && !(await isAdmin(req.userId!))) {
       return res.status(403).json({ success: false, error: "Not authorized to edit this event" });
     }
 
@@ -148,10 +158,11 @@ export async function deleteEvent(req: AuthRequest, res: Response) {
       return res.status(404).json({ success: false, error: "Event not found" });
     }
 
-    if (event.organizer.toString() !== req.userId) {
+    if (event.organizer.toString() !== req.userId && !(await isAdmin(req.userId!))) {
       return res.status(403).json({ success: false, error: "Not authorized to delete this event" });
     }
 
+    await Registration.deleteMany({ event: event._id });
     await Event.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Event deleted" });
   } catch (err) {
