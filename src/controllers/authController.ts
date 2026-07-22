@@ -86,8 +86,8 @@ export async function demoLogin(_req: Request, res: Response) {
 }
 
 export async function logout(_req: Request, res: Response) {
-  res.clearCookie("token");
-  res.clearCookie("refreshToken");
+  res.clearCookie("token", COOKIE_OPTIONS);
+  res.clearCookie("refreshToken", COOKIE_OPTIONS);
   res.json({ success: true, message: "Logged out" });
 }
 

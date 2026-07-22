@@ -6,6 +6,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: "user" | "admin";
   avatar?: string;
+  savedEvents: mongoose.Types.ObjectId[];
   createdAt: Date;
 }
 
@@ -15,6 +16,7 @@ const userSchema = new Schema<IUser>({
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   avatar: { type: String },
+  savedEvents: [{ type: Schema.Types.ObjectId, ref: "Event" }],
   createdAt: { type: Date, default: Date.now },
 });
 
